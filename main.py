@@ -45,46 +45,62 @@ class Voiteli:
         dung_id = 3
         link_dung = 'dung/list/?dung_id={}'.format(dung_id)
         print('Available battles: {}'.format(self.get_count_of_battles(link_dung)))
+        count_of_battles = self.get_count_of_battles(link_dung)
+        loc_id = random.randint(11, 15)
 
-        if self.get_count_of_battles(link_dung) > 0:
-            while self.get_count_of_battles(link_dung) > 0:
-                loc_id = random.randint(11, 14)
+        if count_of_battles > 0:
+            self.s.post(self.url + link_dung + '&loc_id=' + str(loc_id))
 
-                soup = BeautifulSoup(self.s.get(self.url + 'hunt').text, 'html.parser')
-                print(self.s.post(self.url + link_dung  + '&loc_id=' + str(loc_id) ).url)
+            self.dungeon_fight()
 
-                sleep(1)
-                self.dungeon_fight()
         else:
             print("Out of available get_count_dung")
 
     def dungeon_fight(self):
+
         soup = BeautifulSoup(self.s.get(self.url + 'dung/fight/').text, 'html.parser')
+        try:
+            text = soup.find('a', attrs={'class': 'btn'}).text
 
-        get_link_battle = soup.find('a', attrs={'class': 'btn'}, href=True)['href']
-        print(get_link_battle)
-        health = soup.find('a', attrs={'class': 'btn'}).text
-        print(health)
-        while health == 'Ударить':
-            print(self.s.post(self.url + 'dung/fight' + get_link_battle).url)
-            sleep(1)
-            self.dungeon_fight()
+            if text == 'Ударить':
+                get_link_battle = soup.find('a', attrs={'class': 'btn'}, href=True)['href']
+                print('Ударить противника')
+                self.s.post(self.url + 'dung/fight' + get_link_battle)
+                sleep(1)
+                self.dungeon_fight()
+            elif text == 'Завершить':
+                self.s.post(self.url + 'dung/fight/?complete')
+                print('Завершить бой')
+                self.dungeon()
 
-        print(self.s.post(self.url + 'dung/fight/?complete').url)
-        self.dungeon()
+        except Exception as e:
+            print(e)
 
     def run(self):
-        try:
-            self.auth()
+        while True:
+            try:
+                self.auth()
 
-        except AttributeError:
-            print('Auth is not successfully')
-            exit()
-        self.hunt()
-        self.dungeon()
-        exit()
+            except AttributeError:
+                print('Auth is not successfully')
+                exit()
+
+            self.hunt()
+            self.dungeon()
+            print("Бот завершить работу до запуска 2 часа")
+            sleep(7200)
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    v = Voiteli('', '')
-    v.run()
+
+    with open('account.json') as json_load_accounts:
+        accounts = json.load(json_load_accounts)
+    try:
+
+        for account in accounts:
+            w = Voiteli(account['login'], account['password'])
+            w.run()
+    except Exception as e:
+        print('Ошибка в логине или пароле')
+
