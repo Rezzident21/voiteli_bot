@@ -76,6 +76,39 @@ class Voiteli:
         except Exception as e:
             print(e)
 
+    def arena(self):
+        soup = BeautifulSoup(self.s.get(self.url + 'arena/').text, 'html.parser')
+        battles = soup.findAll('span', attrs={'class': 'arena_points'})[1].text
+        daily_point_arena = int(battles.split('из')[0])
+        max_point_arena = int(battles.split('из')[1])
+
+        print('Arena: {} of {}'.format(daily_point_arena, max_point_arena))
+        if daily_point_arena < max_point_arena:
+            self.s.post(self.url + 'arena/?fight')
+
+            self.arena_fight()
+        else:
+            print('Arena isnt avaiable today')
+
+    def arena_fight(self):
+        soup = BeautifulSoup(self.s.get(self.url + 'arena/fight/').text, 'html.parser')
+        try:
+            text = soup.find('a', attrs={'class': 'btn'}).text
+
+            if text == 'Ударить':
+                get_link_battle = soup.find('a', attrs={'class': 'btn'}, href=True)['href']
+                print('Ударить противника')
+                self.s.post(self.url + 'arena/fight' + get_link_battle)
+                sleep(1)
+                self.arena_fight()
+            elif text == 'Завершить':
+                self.s.post(self.url + 'arena/fight/?complete')
+                print('Завершить бой')
+                self.arena()
+        except Exception as e:
+            print(e)
+            print('Error in arena fight')
+
     def run(self):
         while True:
             try:
@@ -84,7 +117,7 @@ class Voiteli:
             except AttributeError:
                 print('Auth is not successfully')
                 exit()
-
+            self.arena()
             self.hunt()
             self.dungeon()
             print("Бот завершить работу до запуска 2 часа")
@@ -102,5 +135,5 @@ if __name__ == '__main__':
             w = Voiteli(account['login'], account['password'])
             w.run()
     except Exception as e:
+        print(e)
         print('Ошибка в логине или пароле')
-
