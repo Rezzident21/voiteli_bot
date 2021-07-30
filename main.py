@@ -109,6 +109,18 @@ class Voiteli:
             print(e)
             print('Error in arena fight')
 
+    def task(self):
+        soup = BeautifulSoup(self.s.get(self.url + 'task/').text, 'html.parser')
+        link_task = soup.find('div', attrs={'class': 'tasks'})
+        try:
+            get_link_task = link_task.find('a', attrs={'class': 'btn'}, href=True)['href']
+            self.s.post(self.url + 'task/' + get_link_task)
+            sleep(1)
+            self.task()
+            print(get_link_task)
+        except Exception as e:
+            print('Доступные задания завершены')
+
     def run(self):
         while True:
             try:
@@ -117,9 +129,11 @@ class Voiteli:
             except AttributeError:
                 print('Auth is not successfully')
                 exit()
+            self.task()
             self.arena()
             self.hunt()
             self.dungeon()
+
             print("Бот завершить работу до запуска 2 часа")
             sleep(7200)
 
