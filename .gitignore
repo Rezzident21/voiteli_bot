@@ -1,7 +1,5 @@
-<<<<<<< HEAD
+
 *.json
 !spec/*.json
 account.json
-=======
-account.json
->>>>>>> f3bf34b765cfa3571777cb5738d858238f98ce73
+
