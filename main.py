@@ -46,7 +46,7 @@ class Voiteli:
         link_dung = 'dung/list/?dung_id={}'.format(dung_id)
         print('Available battles: {}'.format(self.get_count_of_battles(link_dung)))
         count_of_battles = self.get_count_of_battles(link_dung)
-        loc_id = random.randint(11, 15)
+        loc_id = random.randint(12, 15)
 
         if count_of_battles > 0:
             self.s.post(self.url + link_dung + '&loc_id=' + str(loc_id))
