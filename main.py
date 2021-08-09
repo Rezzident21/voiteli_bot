@@ -121,6 +121,47 @@ class Voiteli:
         except Exception as e:
             print('Доступные задания завершены')
 
+    def free_chest(self):
+        soup = BeautifulSoup(self.s.get(self.url + 'shop/chest/view/?chest_id=1').text, 'html.parser')
+        text_free_chest = soup.find('span', attrs={'class': 'ok'}).text
+        print(text_free_chest)
+        if text_free_chest:
+            get_link_open_chest = soup.find('a', attrs={'class': 'btn'}, href=True)['href']
+            print(get_link_open_chest)
+            self.s.post(self.url + 'shop/chest/view/' + get_link_open_chest)
+
+    def boss(self):
+        soup = BeautifulSoup(self.s.get(self.url + 'boss').text, 'html.parser')
+        main_div_boss_farm = soup.find('div', attrs={'class': 'boss-farm'})
+        link_boss_farm = main_div_boss_farm.find('div', attrs={'class': 'menu'})
+        link_boss_farm3 = link_boss_farm.findAll('li', attrs={'class': 'menu__item menu__item_size_l'})
+
+        for link in link_boss_farm3:
+            try:
+                href = link.find('a', attrs={'class': 'menu__link'}, href=True)['href']
+                self.s.post(self.url + 'boss/'+ href)
+                self.boss_fight()
+            except:
+                pass
+    def boss_fight(self):
+        soup = BeautifulSoup(self.s.get(self.url + 'boss/fight/').text, 'html.parser')
+        try:
+            text = soup.find('a', attrs={'class': 'btn'}).text
+
+            if text == 'Ударить':
+                get_link_battle = soup.find('a', attrs={'class': 'btn'}, href=True)['href']
+                print('Ударить противника')
+                self.s.post(self.url + 'boss/fight' + get_link_battle)
+                sleep(1)
+                self.boss_fight()
+            elif text == 'Завершить':
+                self.s.post(self.url + 'boss/fight/?complete')
+                print('Завершить бой')
+                self.boss()
+        except Exception as e:
+            print(e)
+            print('Error in boss fight')
+
     def run(self):
         while True:
             try:
@@ -129,6 +170,14 @@ class Voiteli:
             except AttributeError:
                 print('Auth is not successfully')
                 exit()
+            try:
+                self.boss()
+            except Exception as e:
+                print('Ошибка в босс')
+            try:
+                self.free_chest()
+            except Exception as e:
+                print('Бесплатный сундук уже открыт')
             self.task()
             self.arena()
             self.hunt()
